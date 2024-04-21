@@ -1,31 +1,41 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useAuth } from "./utils/AuthContext";
 
 function Products() {
 
     const [products, setProducts] = useState(null);
     const [categories, setCategories] = useState(null);
 
+    const { isAuthenticated, jwtToken } = useAuth();
+
+    const config = {
+        headers: {
+            Authorization: `Bearer ${jwtToken}`
+        }
+    }
+
     useEffect(() => {
         //code to be triggered in the side effect
+        if (isAuthenticated) {
+            axios.get("http://localhost:8080/products", config)
+                .then(function (response) {
+                    setProducts(response.data);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
 
-        axios.get("http://localhost:8080/products")
-            .then(function (response) {
-                setProducts(response.data);
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
+            axios.get("http://localhost:8080/categories", config)
+                .then(function (response) {
+                    setCategories(response.data);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        }
 
-        axios.get("http://localhost:8080/categories")
-            .then(function (response) {
-                setCategories(response.data);
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
-
-    }, []);
+    }, [isAuthenticated]);
 
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
@@ -60,7 +70,7 @@ function Products() {
             categoryId: category,
         }
 
-        axios.post("http://localhost:8080/products", data)
+        axios.post("http://localhost:8080/products", data, config)
             .then(function (response) {
                 console.log(response);
             })
@@ -70,7 +80,7 @@ function Products() {
     }
 
     function getProducts() {
-        axios.get("http://localhost:8080/products")
+        axios.get("http://localhost:8080/products",config)
             .then(function (response) {
                 setProducts(response.data);
             })
@@ -89,10 +99,10 @@ function Products() {
             categoryId: category,
         }
 
-        axios.put("http://localhost:8080/products/" + edit, data)
+        axios.put("http://localhost:8080/products/" + edit, data, config)
             .then(function (response) {
                 getProducts();
-            }).catch(function (error) { 
+            }).catch(function (error) {
                 console.log(error);
             });
     }
